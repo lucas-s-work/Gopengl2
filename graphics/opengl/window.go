@@ -39,6 +39,7 @@ func CreateWindow(width, height int, name string) *Window {
 		Width:    float64(width),
 		Height:   float64(height),
 		Name:     name,
+		KeyMap:   make(map[string]bool),
 	}
 
 	return &w
@@ -50,6 +51,10 @@ func DestroyWindow(window *glfw.Window) {
 
 func (w *Window) SwapBuffers() {
 	w.GlWindow.SwapBuffers()
+}
+
+func (w *Window) ShouldClose() bool {
+	return w.GlWindow.ShouldClose()
 }
 
 // Input handling
@@ -70,7 +75,7 @@ func (w *Window) PollInput() {
 
 	mX, mY := window.GetCursorPos()
 
-	w.MouseX, w.MouseY = w.ScreenToPix(mX, mY)
+	w.MouseX, w.MouseY = w.ScreenToPix(float32(mX), float32(mY))
 }
 
 func (w *Window) Key(key string) bool {
@@ -90,13 +95,23 @@ func (w *Window) KeyCombo(keys ...string) bool {
 // Pixel to Screen coordinate conversion
 // We deal with 0,0 being the bottom left coordinates
 
-func (w *Window) ScreenToPix(x, y float64) (int, int) {
+func (w *Window) ScreenToPix(x, y float32) (int, int) {
 	// Adjust to bottom left to be 0,0
-	x += 1
-	y += 1
+	x++
+	y++
 
-	x *= (w.Width / 2)
-	y *= (w.Height / 2)
+	x *= (float32(w.Width) / 2)
+	y *= (float32(w.Height) / 2)
 
 	return int(x), int(y)
+}
+
+func (w *Window) PixToScreen(x, y int) (float32, float32) {
+	sx := (2 * float32(x)) / float32(w.Width)
+	sy := (2 * float32(y)) / float32(w.Height)
+
+	sx--
+	sy--
+
+	return sx, sy
 }

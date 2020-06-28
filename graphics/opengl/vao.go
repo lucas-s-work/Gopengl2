@@ -1,8 +1,6 @@
 package opengl
 
 import (
-	"unsafe"
-
 	"github.com/go-gl/gl/v4.1-core/gl"
 )
 
@@ -18,9 +16,8 @@ type VAO struct {
 type Buffer struct {
 	ID        uint32
 	Elements  []float32
-	Dimesion  int32
+	Dimension int32
 	created   bool
-	ePtr      unsafe.Pointer
 	attribute string
 	vao       *VAO
 }
@@ -65,10 +62,18 @@ func (vao *VAO) BindVao() {
 }
 
 func (vao *VAO) AddBuffer(id string, buffer *Buffer) {
+	buffer.vao = vao
+	buffer.attribute = id
 	vao.buffers[id] = buffer
 }
 
+func (vao *VAO) GetBuffer(id string) *Buffer {
+	return vao.buffers[id]
+}
+
 func (vao *VAO) UpdateBuffers() {
+	vao.BindVao()
+
 	for _, b := range vao.buffers {
 		b.Update()
 	}
@@ -94,11 +99,11 @@ func (buffer *Buffer) Create() {
 
 	// Set buffer data
 	gl.BindBuffer(gl.ARRAY_BUFFER, buffer.ID)
-	gl.BufferData(gl.ARRAY_BUFFER, 4*len(buffer.Elements), buffer.ePtr, gl.DYNAMIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, 4*len(buffer.Elements), gl.Ptr(buffer.Elements), gl.DYNAMIC_DRAW)
 
 	//Setup attribute pointer
 	attributeId := buffer.vao.shader.EnableAttribute(buffer.attribute)
-	gl.VertexAttribPointer(attributeId, buffer.Dimesion, gl.FLOAT, false, 0, nil)
+	gl.VertexAttribPointer(attributeId, buffer.Dimension, gl.FLOAT, false, 0, nil)
 }
 
 func (buffer *Buffer) Update() {
@@ -107,7 +112,7 @@ func (buffer *Buffer) Update() {
 	}
 
 	gl.BindBuffer(gl.ARRAY_BUFFER, buffer.ID)
-	gl.BufferSubData(gl.ARRAY_BUFFER, 0, 4*len(buffer.Elements), buffer.ePtr)
+	gl.BufferSubData(gl.ARRAY_BUFFER, 0, 4*len(buffer.Elements), gl.Ptr(buffer.Elements))
 }
 
 func (buffer *Buffer) Delete() {
@@ -136,17 +141,22 @@ func (vao *VAO) PrepUniforms() {
 	}
 }
 
+func (vao *VAO) PixToTex(texX, texY int) (float32, float32) {
+	return vao.texture.PixToTex(texX, texY)
+}
+
 // Rendering logic
 func (vao *VAO) PrepRender() {
 	vao.shader.Use()
 	vao.PrepUniforms()
-	gl.BindVertexArray(vao.id)
+	vao.BindVao()
 	vao.texture.Use()
 }
 
 func (vao *VAO) VertNum() int32 {
 	for _, b := range vao.buffers {
-		return int32(len(b.Elements)) / b.Dimesion
+		a := int32(len(b.Elements)) / b.Dimension
+		return a
 	}
 
 	return 0

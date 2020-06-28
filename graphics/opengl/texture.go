@@ -1,7 +1,7 @@
 package opengl
 
 import (
-	"Gopengl/util"
+	"Gopengl2/util"
 	"fmt"
 	"image"
 	"image/draw"
@@ -57,6 +57,7 @@ func LoadTexture(file string) *Texture {
 
 	// Create new texture if it doesn't exist
 	imgFile, err := os.Open(util.RelativePath(file))
+	fmt.Println(util.RelativePath(file))
 	if err != nil {
 		panic(fmt.Errorf("texture %q not found on disk: %v", file, err))
 	}
@@ -129,24 +130,8 @@ func (t *Texture) Use() {
 }
 
 // NormCoords ... normalize pixture texture coordinates
-func (t *Texture) PixToTex(texs []float32) []float32 {
-	normedTexs := make([]float32, len(texs))
-	even := false
-	width := float32(t.width)
-	height := float32(t.height)
-
-	for i, coord := range texs {
-		even = !even
-
-		if even == true {
-			normedTexs[i] = coord / width
-			continue
-		}
-
-		normedTexs[i] = coord / height
-	}
-
-	return normedTexs
+func (t *Texture) PixToTex(x, y int) (float32, float32) {
+	return float32(x) / float32(t.width), float32(y) / float32(t.height)
 }
 
 // Util
