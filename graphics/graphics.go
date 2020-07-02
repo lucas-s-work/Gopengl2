@@ -10,6 +10,7 @@ import (
 var (
 	window        *opengl.Window
 	renderObjects []*RenderObject
+	jobs          = make(chan RenderJob)
 )
 
 type RenderObject struct {
@@ -27,6 +28,8 @@ func Init(w *opengl.Window) {
 }
 
 func PrepRender() {
+	//Process job queue
+
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
 }
