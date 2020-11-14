@@ -181,8 +181,9 @@ Uniform implementation
 */
 
 type uniform struct {
-	id    uint32
-	value interface{}
+	id      uint32
+	value   interface{}
+	updated bool
 }
 
 func (uni *uniform) ID() uint32 {
@@ -193,22 +194,34 @@ func (uni *uniform) Value() interface{} {
 	return uni.value
 }
 
+func (uni *uniform) Update() {
+	uni.updated = true
+}
+
 func (uni *uniform) Attach() {
+	// Updating uniforms is expensive, avoid if possible
+	if !uni.updated {
+		return
+	}
+
+	uni.updated = false
+
 	switch uni.value.(type) {
-	case float32:
-		value := (uni.value).(float32)
+	case *float32:
+		value := *(uni.value).(*float32)
 		gl.Uniform1f(int32(uni.id), value)
-	case mgl32.Vec2:
-		value := (uni.value).(mgl32.Vec2)
+	case *mgl32.Vec2:
+		value := *(uni.value).(*mgl32.Vec2)
 		gl.Uniform2f(int32(uni.id), value.X(), value.Y())
-	case mgl32.Vec3:
-		value := (uni.value).(mgl32.Vec3)
+	case *mgl32.Vec3:
+		value := *(uni.value).(*mgl32.Vec3)
 		gl.Uniform3f(int32(uni.id), value.X(), value.Y(), value.Z())
-	case mgl32.Vec4:
-		value := (uni.value).(mgl32.Vec4)
+	case *mgl32.Vec4:
+		value := *(uni.value).(*mgl32.Vec4)
 		gl.Uniform4f(int32(uni.id), value.X(), value.Y(), value.Z(), value.W())
 	default:
-		panic("Unsupported uniform type")
+		fmt.Println(uni.Value())
+		panic("Unsupported uniform type, these should be pointers")
 	}
 }
 
@@ -216,11 +229,18 @@ func (p *Program) AddUniform(name string, value interface{}) {
 	uni := uniform{
 		uint32(gl.GetUniformLocation(p.Id, gl.Str(name+"\x00"))),
 		value,
+		true,
 	}
-
 	uni.Attach()
 	p.uniforms[name] = uni
 
+}
+
+func (p *Program) UpdateUniforms() {
+	for _, uni := range p.uniforms {
+		uni.Update()
+		uni.Attach()
+	}
 }
 
 func (p *Program) SetUniform(name string, value interface{}) {
@@ -231,8 +251,18 @@ func (p *Program) SetUniform(name string, value interface{}) {
 	uni := uniform{
 		p.uniforms[name].id,
 		value,
+		true,
 	}
 
 	uni.Attach()
 	p.uniforms[name] = uni
+}
+
+func (p *Program) UpdateUniform(name string) {
+	u, exists := p.uniforms[name]
+	if !exists {
+		panic("Attempting to set non existent uniform")
+	}
+
+	u.Update()
 }

@@ -57,7 +57,6 @@ func LoadTexture(file string) *Texture {
 
 	// Create new texture if it doesn't exist
 	imgFile, err := os.Open(util.RelativePath(file))
-	fmt.Println(util.RelativePath(file))
 	if err != nil {
 		panic(fmt.Errorf("texture %q not found on disk: %v", file, err))
 	}

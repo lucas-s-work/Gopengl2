@@ -1,8 +1,15 @@
 package opengl
 
-import "github.com/go-gl/mathgl/mgl32"
+import (
+	"github.com/go-gl/mathgl/mgl32"
+)
 
-func CreateDefaultVao(window *Window, textureSource string, elements int) *VAO {
+type DefaultVAO struct {
+	*BaseVAO
+	cam, position *mgl32.Vec2
+}
+
+func CreateDefaultVao(window *Window, textureSource string, elements int) *DefaultVAO {
 	vao := CreateVAO(window, textureSource)
 
 	vBuff := Buffer{
@@ -21,18 +28,31 @@ func CreateDefaultVao(window *Window, textureSource string, elements int) *VAO {
 	vao.AddBuffer("vert", &vBuff)
 	vao.AddBuffer("verttexcoord", &tBuff)
 
-	vao.AttachDefaultShader()
-	vao.Init()
+	defaultVAO := DefaultVAO{vao, &mgl32.Vec2{}, &mgl32.Vec2{}}
 
-	return vao
+	defaultVAO.AttachDefaultShader()
+	defaultVAO.Init()
+
+	return &defaultVAO
 }
 
-func (vao *VAO) AttachDefaultShader() {
+func (vao *DefaultVAO) SetTranslation(x, y float32) {
+	vao.position[0] = x
+	vao.position[1] = y
+}
+
+// Rendering logic
+func (vao *DefaultVAO) PrepRender() {
+	vao.BaseVAO.PrepRender()
+	vao.UpdateUniforms()
+}
+
+func (vao *DefaultVAO) AttachDefaultShader() {
 	program := CreateProgram(0)
 	vao.AttachShader(program)
 
-	program.LoadVertShader("Gopengl2/shaders/vertex.vert")
-	program.LoadFragShader("Gopengl2/shaders/fragment.frag")
+	program.LoadVertShader("./resources/shaders/vertex.vert")
+	program.LoadFragShader("./resources/shaders/fragment.frag")
 	program.Link()
 
 	program.AddAttribute("vert")
@@ -41,13 +61,13 @@ func (vao *VAO) AttachDefaultShader() {
 	program.AddAttribute("verttexcoord")
 
 	// Add and set rotation uniform
-	vao.AddUniform("rot", mgl32.Vec4{0, 0, 1, 0})
+	vao.AddUniform("rot", &mgl32.Vec4{0, 0, 1, 0})
 
 	// Other uniforms can use default values.
 	var zoom float32 = 1
 
-	vao.AddUniform("trans", mgl32.Vec2{})
-	vao.AddUniform("dim", mgl32.Vec2{float32(vao.window.Width), float32(vao.window.Height)})
-	vao.AddUniform("cam", mgl32.Vec2{})
-	vao.AddUniform("zoom", zoom)
+	vao.AddUniform("trans", vao.position)
+	vao.AddUniform("dim", &mgl32.Vec2{float32(vao.window.Width), float32(vao.window.Height)})
+	vao.AddUniform("cam", &mgl32.Vec2{})
+	vao.AddUniform("zoom", &zoom)
 }
