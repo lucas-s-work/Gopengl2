@@ -2,6 +2,7 @@ package graphics
 
 import (
 	"Gopengl2/graphics/opengl"
+	"fmt"
 
 	"github.com/go-gl/gl/v4.1-core/gl"
 )
@@ -120,7 +121,12 @@ func (ro *RenderObject) SetAutoUpdate(update bool) {
 	ro.autoUpdate = update
 }
 
+func (ro *RenderObject) SetTranslation(x, y float32) {
+	ro.vao.SetTranslation(x, y)
+}
+
 func (ro *RenderObject) UpdateBuffers() {
+	fmt.Println("Updating buffers")
 	ro.vao.BindVao()
 	ro.vao.UpdateBuffers()
 	ro.updated = false
@@ -130,7 +136,7 @@ func (ro *RenderObject) PrepRender() {
 	if ro.updated && ro.autoUpdate {
 		ro.vao.BindVao()
 		ro.vao.UpdateBuffers()
-		ro.updated = false
+		ro.updated = true
 	}
 	ro.vao.PrepRender()
 }

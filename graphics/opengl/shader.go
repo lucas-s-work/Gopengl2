@@ -57,8 +57,6 @@ Load all desired shaders then call program.Link()
 func ReadFile(source string) (string, error) {
 	data, err := ioutil.ReadFile(util.RelativePath(source))
 
-	fmt.Println(util.RelativePath(source))
-
 	if err != nil {
 		return "", err
 	}
@@ -106,26 +104,30 @@ func (program *Program) LoadFragShader(source string) {
 }
 
 func (program *Program) loadShader(rawData string, shaderType uint32) {
-	shader := gl.CreateShader(shaderType)
+	shaderId := gl.CreateShader(shaderType)
 	source, free := gl.Strs(rawData)
 
-	gl.ShaderSource(shader, 1, source, nil)
+	gl.ShaderSource(shaderId, 1, source, nil)
 	free()
-	gl.CompileShader(shader)
+	gl.CompileShader(shaderId)
 
 	var status int32
-	gl.GetShaderiv(shader, gl.COMPILE_STATUS, &status)
+	gl.GetShaderiv(shaderId, gl.COMPILE_STATUS, &status)
 
 	if status == gl.FALSE {
 		var logLength int32
-		gl.GetShaderiv(shader, gl.INFO_LOG_LENGTH, &logLength)
+		gl.GetShaderiv(shaderId, gl.INFO_LOG_LENGTH, &logLength)
 
 		log := strings.Repeat("\x00", int(logLength+1))
-		gl.GetShaderInfoLog(shader, logLength, nil, gl.Str(log))
+		gl.GetShaderInfoLog(shaderId, logLength, nil, gl.Str(log))
 		panic(fmt.Errorf("failed to compile %v: %v", source, log))
 	}
 
-	gl.AttachShader(program.Id, shader)
+	storedShaders = append(storedShaders, &shader{
+		shaderId, rawData,
+	})
+
+	gl.AttachShader(program.Id, shaderId)
 }
 
 func findShader(file string) *shader {

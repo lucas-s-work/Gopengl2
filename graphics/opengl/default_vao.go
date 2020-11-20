@@ -44,7 +44,6 @@ func (vao *DefaultVAO) SetTranslation(x, y float32) {
 // Rendering logic
 func (vao *DefaultVAO) PrepRender() {
 	vao.BaseVAO.PrepRender()
-	vao.UpdateUniforms()
 }
 
 func (vao *DefaultVAO) AttachDefaultShader() {
