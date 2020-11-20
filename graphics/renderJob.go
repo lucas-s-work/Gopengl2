@@ -4,7 +4,7 @@ var (
 	renderJobs = make(chan *RenderJob, 100)
 )
 
-// Async opengl sounds likes a great idea...
+// Async opengl sounds likes a great idea :)
 
 type RenderJob struct {
 	callback func(...interface{})
@@ -40,9 +40,9 @@ func AddJob(job *RenderJob) bool {
 	}
 }
 
-func (ro *RenderObject) AddJobBlock(block func(ro *RenderObject)) bool {
+func AddJobBlock(ro RenderObject, block func(ro RenderObject)) bool {
 	jobWrapper := func(job *RenderJob) []interface{} {
-		block((job.params[0]).(*RenderObject))
+		block((job.params[0]).(RenderObject))
 		return nil
 	}
 	return AddJob(&RenderJob{
@@ -51,21 +51,35 @@ func (ro *RenderObject) AddJobBlock(block func(ro *RenderObject)) bool {
 	})
 }
 
-func CreateRenderObjectJob(texture string, elements int, callback func(...interface{})) {
+func CreateDefaultRenderObjectJob(texture string, elements int, callback func(...interface{})) {
 	AddJob(&RenderJob{
 		callback: callback,
-		jobFunc:  callCreateRenderObject,
+		jobFunc:  callCreateDefaultRenderObject,
 		params:   []interface{}{texture, elements},
 	})
 }
 
-func callCreateRenderObject(job *RenderJob) []interface{} {
-	ro := CreateRenderObject((job.params[0]).(string), (job.params[1]).(int))
+func CreateBaseRenderObjectJob(texture string, elements int, callback func(...interface{})) {
+	AddJob(&RenderJob{
+		callback: callback,
+		jobFunc:  callCreateBaseRenderObject,
+		params:   []interface{}{texture, elements},
+	})
+}
+
+func callCreateDefaultRenderObject(job *RenderJob) []interface{} {
+	ro := CreateDefaultRenderObject((job.params[0]).(string), (job.params[1]).(int))
 	ro.async = true
 	return []interface{}{ro}
 }
 
-func (ro *RenderObject) UpdateBuffersJob(callback func(...interface{})) {
+func callCreateBaseRenderObject(job *RenderJob) []interface{} {
+	ro := CreateBaseRenderObject((job.params[0]).(string), (job.params[1]).(int))
+	ro.async = true
+	return []interface{}{ro}
+}
+
+func UpdateBuffersJob(ro RenderObject, callback func(...interface{})) {
 	AddJob(&RenderJob{
 		callback: callback,
 		jobFunc:  callUpdateBuffers,
@@ -74,7 +88,7 @@ func (ro *RenderObject) UpdateBuffersJob(callback func(...interface{})) {
 }
 
 func callUpdateBuffers(job *RenderJob) []interface{} {
-	ro := job.params[0].(*RenderObject)
-	ro.vao.UpdateBuffers()
+	ro := job.params[0].(RenderObject)
+	ro.UpdateBuffers()
 	return nil
 }

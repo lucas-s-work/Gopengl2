@@ -1,7 +1,7 @@
 package opengl
 
 import (
-	"Gopengl/util"
+	"Gopengl2/util"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -20,7 +20,7 @@ const (
 )
 
 var (
-	storedShaders []*shader
+	loadedShaders []*shader
 )
 
 type shader struct {
@@ -33,6 +33,8 @@ type Program struct {
 	attributes map[string]uint32
 	uniforms   map[string]uniform
 }
+
+// Shader program loading and creation
 
 func CreateProgram(Id uint32) *Program {
 	if Id == 0 {
@@ -51,7 +53,7 @@ func (program *Program) AttachShader(s *shader) {
 }
 
 /*
-Load all desired shaders then call program.Link()
+Load and attach shaders, if the shader has already been loaded it is not re-created.
 */
 
 func ReadFile(source string) (string, error) {
@@ -64,29 +66,16 @@ func ReadFile(source string) (string, error) {
 	return string(data[:]) + "\x00", nil
 }
 
-/*
-Load and attach shaders, if the shader has already been loaded it is not re-created.
-*/
-func (program *Program) LoadVertShader(source string) {
-	existingShader := findShader(source)
-
-	if existingShader != nil {
-		program.AttachShader(existingShader)
-
-		return
-	}
-
-	rawData, err := ReadFile(source)
-
-	if err != nil {
-		panic(fmt.Errorf("Unable to find vertex shader file: %s, err: %s", source, err.Error()))
-	}
-
-	program.loadShader(rawData, VERTSHADER)
+func (program *Program) LoadVertShader(file string) {
+	program.loadShader(file, VERTSHADER)
 }
 
-func (program *Program) LoadFragShader(source string) {
-	existingShader := findShader(source)
+func (program *Program) LoadFragShader(file string) {
+	program.loadShader(file, FRAGSHADER)
+}
+
+func (program *Program) loadShader(file string, shaderType uint32) {
+	existingShader := findShader(file)
 
 	if existingShader != nil {
 		program.AttachShader(existingShader)
@@ -94,16 +83,14 @@ func (program *Program) LoadFragShader(source string) {
 		return
 	}
 
-	rawData, err := ReadFile(source)
+	rawData, err := ReadFile(file)
 
 	if err != nil {
-		panic(fmt.Errorf("Unable to find vertex shader file: %s", source))
+		panic(fmt.Errorf("Unable to find vertex shader file: %s", file))
 	}
 
 	program.loadShader(rawData, FRAGSHADER)
-}
 
-func (program *Program) loadShader(rawData string, shaderType uint32) {
 	shaderId := gl.CreateShader(shaderType)
 	source, free := gl.Strs(rawData)
 
@@ -123,15 +110,17 @@ func (program *Program) loadShader(rawData string, shaderType uint32) {
 		panic(fmt.Errorf("failed to compile %v: %v", source, log))
 	}
 
-	storedShaders = append(storedShaders, &shader{
-		shaderId, rawData,
+	loadedShaders = append(loadedShaders, &shader{
+		shaderId, file,
 	})
 
 	gl.AttachShader(program.Id, shaderId)
 }
 
+// Determine if a shader has already been created
+
 func findShader(file string) *shader {
-	for _, s := range storedShaders {
+	for _, s := range loadedShaders {
 		if s.file == file {
 			return s
 		}
@@ -140,9 +129,7 @@ func findShader(file string) *shader {
 	return nil
 }
 
-/*
-Shader methods
-*/
+// Shader binding and linking
 
 func (p *Program) Use() {
 	gl.UseProgram(p.Id)
@@ -156,9 +143,7 @@ func (p *Program) Link() {
 	gl.LinkProgram(p.Id)
 }
 
-/*
-Attribute implementation
-*/
+// Attribute handling
 
 func (p *Program) AddAttribute(attribute string) {
 	attrib := gl.GetAttribLocation(p.Id, gl.Str(attribute+"\x00"))
@@ -178,9 +163,11 @@ func (p *Program) EnableAttribute(attribute string) uint32 {
 	return attributeValue
 }
 
-/*
-Uniform implementation
-*/
+func (p *Program) DisableAttribute(attribute string) {
+	gl.DisableVertexAttribArray(p.attributes[attribute])
+}
+
+// Uniform handling
 
 type uniform struct {
 	id      uint32
@@ -195,6 +182,11 @@ func (uni *uniform) ID() uint32 {
 func (uni *uniform) Value() interface{} {
 	return uni.value
 }
+
+/*
+Each Render call Attach is called for each uniform, Attach only sets the value if
+Update set
+*/
 
 func (uni *uniform) Update() {
 	uni.updated = true
@@ -235,15 +227,12 @@ func (p *Program) AddUniform(name string, value interface{}) {
 	}
 	uni.Attach()
 	p.uniforms[name] = uni
-
 }
 
-func (p *Program) UpdateUniforms() {
-	for _, uni := range p.uniforms {
-		uni.Update()
-		uni.Attach()
-	}
-}
+/*
+Set uniform value, this should be set to pointers as this is an expensive way to update,
+if set to a pointer then call Update()
+*/
 
 func (p *Program) SetUniform(name string, value interface{}) {
 	if _, exists := p.uniforms[name]; !exists {
@@ -267,4 +256,11 @@ func (p *Program) UpdateUniform(name string) {
 	}
 
 	u.Update()
+}
+
+func (p *Program) UpdateUniforms() {
+	for _, uni := range p.uniforms {
+		uni.Update()
+		uni.Attach()
+	}
 }

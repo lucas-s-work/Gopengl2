@@ -44,9 +44,10 @@ type Texture struct {
 	textureUnit uint32
 }
 
-/**
+/*
 Loads a texture, does not reload it if already created
 */
+
 func LoadTexture(file string) *Texture {
 	// Load existing texture
 	existingTex := FindTex(file)

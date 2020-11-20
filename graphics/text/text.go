@@ -53,6 +53,7 @@ func LoadDefaultFont() {
 	defaultFont = LoadFont("./resources/sprites/font.png", defaultLetterString)
 }
 
+// Create and initialize the text RO
 func CreateText(text string, x, y int, font Font) Text {
 	if &font == nil {
 		font = defaultFont
@@ -74,6 +75,7 @@ func CreateText(text string, x, y int, font Font) Text {
 	return Text{font, ro, text, indexs}
 }
 
+// Update the text RO
 func (t Text) UpdateText(text string, x, y int) {
 	t.font.renderText(x, y, text, t.R, t.currentTextIndexs, 100)
 }

@@ -1,8 +1,6 @@
 package opengl
 
 import (
-	"Gopengl2/util"
-
 	"github.com/go-gl/glfw/v3.2/glfw"
 )
 
@@ -10,6 +8,7 @@ type Window struct {
 	GlWindow      *glfw.Window
 	Width, Height float64
 	Name          string
+
 	// Mouse and keyboard
 	KeyMap                 map[string]bool
 	MouseX, MouseY         int
@@ -19,9 +18,9 @@ type Window struct {
 // Window Creation and destruction
 
 func CreateWindow(width, height int, name string) *Window {
-	err := glfw.Init()
-
-	util.CheckErr(err)
+	if err := glfw.Init(); err != nil {
+		panic(err)
+	}
 
 	glfw.WindowHint(glfw.Resizable, glfw.False)
 	glfw.WindowHint(glfw.ContextVersionMajor, 4)
@@ -30,7 +29,9 @@ func CreateWindow(width, height int, name string) *Window {
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
 	window, err := glfw.CreateWindow(width, height, name, nil, nil)
 
-	util.CheckErr(err)
+	if err != nil {
+		panic(err)
+	}
 
 	window.MakeContextCurrent()
 
