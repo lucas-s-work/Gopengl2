@@ -192,7 +192,7 @@ func (uni *uniform) Update() {
 
 func (uni *uniform) Attach() {
 	// Updating uniforms is expensive, avoid if possible
-	if !uni.updated {
+	if !uni.updated || uni.id == 4294967295 {
 		return
 	}
 
@@ -212,7 +212,7 @@ func (uni *uniform) Attach() {
 		value := *(uni.value).(*mgl32.Vec4)
 		gl.Uniform4f(int32(uni.id), value.X(), value.Y(), value.Z(), value.W())
 	default:
-		fmt.Println(uni.Value())
+		fmt.Println(uni.value.(*mgl32.Vec2))
 		panic("Unsupported uniform type, these should be pointers")
 	}
 }
@@ -223,6 +223,7 @@ func (p *Program) AddUniform(name string, value interface{}) {
 		value,
 		true,
 	}
+	p.Use()
 	uni.Attach()
 	p.uniforms[name] = uni
 }
@@ -242,7 +243,7 @@ func (p *Program) SetUniform(name string, value interface{}) {
 		value,
 		true,
 	}
-
+	p.Use()
 	uni.Attach()
 	p.uniforms[name] = uni
 }
@@ -252,11 +253,12 @@ func (p *Program) UpdateUniform(name string) {
 	if !exists {
 		panic("Attempting to set non existent uniform")
 	}
-
+	p.Use()
 	u.Update()
 }
 
 func (p *Program) UpdateUniforms() {
+	p.Use()
 	for _, uni := range p.uniforms {
 		uni.Update()
 		uni.Attach()

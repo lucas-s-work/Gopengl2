@@ -39,6 +39,7 @@ func CreateDefaultVao(window *Window, textureSource string, elements int) *Defau
 func (vao *DefaultVAO) SetTranslation(x, y float32) {
 	vao.position[0] = x
 	vao.position[1] = y
+	vao.UpdateUniforms()
 }
 
 // Rendering logic
@@ -64,7 +65,6 @@ func (vao *DefaultVAO) AttachDefaultShader() {
 
 	// Other uniforms can use default values.
 	var zoom float32 = 1
-
 	vao.AddUniform("trans", vao.position)
 	vao.AddUniform("dim", &mgl32.Vec2{float32(vao.window.Width), float32(vao.window.Height)})
 	vao.AddUniform("cam", &mgl32.Vec2{})

@@ -1,21 +1,61 @@
 #version 410
 in vec2 vert;
+in vec4 rotgroup;
 in vec2 verttexcoord;
 
+//Translation, window dimension scaling, rotation
 uniform vec2 trans;
-uniform vec3 rot;
+uniform vec2 dim;
+uniform vec4 rot;
+
+// Camera and zoom
+uniform float zoom;
+uniform vec2 cam;
 
 out vec2 fragtexcoord;
 void main(){
+    // Set tex coords for frag shader
     fragtexcoord=verttexcoord;
-    
-    //rotate before translate
     vec2 pos=vert;
+    
+    //Apply rotgroup rotation first, we want local changes then global changes to each vertex
+    // vec2 rotcenter=vec2(rotgroup.x,rotgroup.y);
+    // pos-=rotcenter;
+    
+    // mat2 rotmat=mat2(
+    //     rotgroup.z,rotgroup.w,
+    //     -rotgroup.w,rotgroup.z
+    // );
+    // pos=rotmat*pos;
+    
+    // pos+=rotcenter;
+    
+    // Apply uniform rotation
     vec2 rotcenter=vec2(rot.x,rot.y);
-    pos-=rotcenter;
-    mat2 rotmat=mat2(cos(rot.z),-sin(rot.z),sin(rot.z),cos(rot.z));
-    pos*=rotmat;
-    pos+=rotcenter;
-    pos+=trans;
+    pos=pos-rotcenter;
+    
+    mat2 rotmat=mat2(
+        rot.z,rot.w,
+        -rot.w,rot.z
+    );
+    
+    pos=rotmat*pos;
+    
+    pos=pos+rotcenter;
+    
+    // Apply screen scaling from pixel coordinates
+    pos.x=zoom*(pos.x/(.5*dim.x))-1;
+    pos.y=1-zoom*(pos.y/(.5*dim.y));
+
+    // Apply translation from pixel coordinates
+    vec2 scaled_trans = trans;
+    scaled_trans.x = scaled_trans.x / (.5 * dim.x);
+    scaled_trans.y = scaled_trans.y / (.5 * dim.y);
+
+    // Aplly translation from cam
+    vec2 scaled_cam = cam;
+    scaled_cam.x = scaled_trans.x / (.5 * dim.x);
+    scaled_cam.y = scaled_trans.y / (.5 * dim.y);
+    
     gl_Position=vec4(pos,0.,1.);
 }

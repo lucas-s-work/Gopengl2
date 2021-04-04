@@ -18,7 +18,7 @@ type fontCoord struct {
 
 type Text struct {
 	font              Font
-	R                 *graphics.RenderObject
+	R                 *graphics.DefaultRenderObject
 	currentText       string
 	currentTextIndexs []int
 }
@@ -63,7 +63,7 @@ func CreateText(text string, x, y int, font Font) Text {
 		panic("font set to nil and default font not loaded.")
 	}
 
-	ro := graphics.CreateRenderObject(defaultFontLocation, 1000)
+	ro := graphics.CreateDefaultRenderObject(defaultFontLocation, 1000)
 	indexs := make([]int, 1000)
 	// Initialize the positions used for the render object
 	for i := 0; i < 1000; i++ {
@@ -80,12 +80,13 @@ func (t Text) UpdateText(text string, x, y int) {
 	t.font.renderText(x, y, text, t.R, t.currentTextIndexs, 100)
 }
 
-func (f Font) renderText(x, y int, text string, ro *graphics.RenderObject, indexs []int, wrap int) {
+func (f Font) renderText(x, y int, text string, ro *graphics.DefaultRenderObject, indexs []int, wrap int) {
 	// Perform this job asynchronously
-	ro.AddJobBlock(func(r *graphics.RenderObject) {
+	graphics.AddJobBlock(ro, func(r graphics.RenderObject) {
+		ro := r.(*graphics.DefaultRenderObject)
 		// remove all previous text
 		for _, index := range indexs {
-			r.ModifyRect(index, 0, 0, 0, 0, 0, 0, 0, 0)
+			ro.ModifyRect(index, 0, 0, 0, 0, 0, 0, 0, 0)
 		}
 
 		j := 0
@@ -104,7 +105,7 @@ func (f Font) renderText(x, y int, text string, ro *graphics.RenderObject, index
 			}
 
 			// Add current text with letter wrapping
-			r.ModifyRect(indexs[i], x+k*f.letterWidth, y+j*f.letterHeight, f.letterWidth, f.letterHeight, coord.x, coord.y, f.letterWidth, f.letterHeight)
+			ro.ModifyRect(indexs[i], x+k*f.letterWidth, y+j*f.letterHeight, f.letterWidth, f.letterHeight, coord.x, coord.y, f.letterWidth, f.letterHeight)
 		}
 	})
 }

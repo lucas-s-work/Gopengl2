@@ -1,6 +1,8 @@
 package graphics
 
-import "Gopengl2/graphics/opengl"
+import (
+	"Gopengl2/graphics/opengl"
+)
 
 type DefaultRenderObject struct {
 	*BaseRenderObject

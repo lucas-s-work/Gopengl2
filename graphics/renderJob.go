@@ -40,7 +40,7 @@ func AddJob(job *RenderJob) bool {
 	}
 }
 
-func AddJobBlock(ro RenderObject, block func(ro RenderObject)) bool {
+func AddJobBlock(ro RenderObject, block func(r RenderObject)) bool {
 	jobWrapper := func(job *RenderJob) []interface{} {
 		block((job.params[0]).(RenderObject))
 		return nil
@@ -51,30 +51,32 @@ func AddJobBlock(ro RenderObject, block func(ro RenderObject)) bool {
 	})
 }
 
-func CreateDefaultRenderObjectJob(texture string, elements int, callback func(...interface{})) {
+func CreateDefaultRenderObjectJob(ro *DefaultRenderObject, texture string, elements int, callback func(...interface{})) {
 	AddJob(&RenderJob{
 		callback: callback,
 		jobFunc:  callCreateDefaultRenderObject,
-		params:   []interface{}{texture, elements},
+		params:   []interface{}{ro, texture, elements},
 	})
 }
 
-func CreateBaseRenderObjectJob(texture string, elements int, callback func(...interface{})) {
+func CreateBaseRenderObjectJob(ro *BaseRenderObject, texture string, elements int, callback func(...interface{})) {
 	AddJob(&RenderJob{
 		callback: callback,
 		jobFunc:  callCreateBaseRenderObject,
-		params:   []interface{}{texture, elements},
+		params:   []interface{}{ro, texture, elements},
 	})
 }
 
 func callCreateDefaultRenderObject(job *RenderJob) []interface{} {
-	ro := CreateDefaultRenderObject((job.params[0]).(string), (job.params[1]).(int))
+	ro := CreateDefaultRenderObject((job.params[1]).(string), (job.params[2]).(int))
+	*(job.params[0]).(*DefaultRenderObject) = *ro
 	ro.async = true
 	return []interface{}{ro}
 }
 
 func callCreateBaseRenderObject(job *RenderJob) []interface{} {
-	ro := CreateBaseRenderObject((job.params[0]).(string), (job.params[1]).(int))
+	ro := CreateBaseRenderObject((job.params[1]).(string), (job.params[2]).(int))
+	*(job.params[0]).(*BaseRenderObject) = *ro
 	ro.async = true
 	return []interface{}{ro}
 }

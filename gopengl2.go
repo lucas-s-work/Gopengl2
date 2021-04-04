@@ -11,12 +11,16 @@ func init() {
 }
 
 func main() {
+	opengl.GlInit()
 	window := opengl.CreateWindow(800, 600, "test")
 	graphics.Init(window)
 
-	ro := graphics.CreateRenderObject("./resources/sprites/planets.png", 2)
-	ro.CreateSquare(0, 0, 256, 0, 0, 32)
+	ro := graphics.CreateDefaultRenderObject("./resources/sprites/tiles.png", 24)
+	ro.CreateRect(0, 0, 32, 32, 0, 0, 1, 1)
+	ro.CreateRect(32, 0, 32, 32, 0, 0, 1, 1)
+
 	ro.UpdateBuffers()
+	// ro.ShouldRender = true
 
 	for !window.ShouldClose() {
 		graphics.Render()

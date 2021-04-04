@@ -44,7 +44,6 @@ func FinishRender() {
 
 func Render() {
 	PrepRender()
-
 	for _, obj := range renderObjects {
 		obj.Render()
 	}
