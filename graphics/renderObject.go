@@ -2,7 +2,6 @@ package graphics
 
 import (
 	"Gopengl2/graphics/opengl"
-	"fmt"
 )
 
 type RenderObject interface {
@@ -69,7 +68,6 @@ func (ro *BaseRenderObject) SetAutoUpdate(update bool) {
 }
 
 func (ro *BaseRenderObject) UpdateBuffers() {
-	fmt.Println("Updating buffers")
 	ro.vao.BindVao()
 	ro.vao.UpdateBuffers()
 	ro.updated = false

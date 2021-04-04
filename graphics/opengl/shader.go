@@ -89,8 +89,6 @@ func (program *Program) loadShader(file string, shaderType uint32) {
 		panic(fmt.Errorf("Unable to find vertex shader file: %s", file))
 	}
 
-	program.loadShader(rawData, FRAGSHADER)
-
 	shaderId := gl.CreateShader(shaderType)
 	source, free := gl.Strs(rawData)
 
