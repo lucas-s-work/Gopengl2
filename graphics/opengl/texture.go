@@ -42,6 +42,7 @@ type Texture struct {
 	height      int
 	file        string
 	textureUnit uint32
+	bound       bool
 }
 
 /*
@@ -100,6 +101,7 @@ func LoadTexture(file string) *Texture {
 		bounds.Max.Y,
 		file,
 		currentTextureUnitId,
+		false,
 	}
 
 	gl.BindTexture(gl.TEXTURE_2D, 0)
@@ -125,6 +127,11 @@ Texture usage methods
 */
 
 func (t *Texture) Use() {
+	if t.bound {
+		return
+	}
+
+	t.bound = true
 	gl.ActiveTexture(t.textureUnit)
 	gl.BindTexture(gl.TEXTURE_2D, t.id)
 }

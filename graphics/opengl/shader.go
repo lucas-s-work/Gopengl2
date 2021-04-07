@@ -211,8 +211,10 @@ func (uni *uniform) Attach() {
 	case *mgl32.Vec4:
 		value := *(uni.value).(*mgl32.Vec4)
 		gl.Uniform4f(int32(uni.id), value.X(), value.Y(), value.Z(), value.W())
+	case *mgl32.Mat2:
+		value := *(uni.value).(*mgl32.Mat2)
+		gl.UniformMatrix2fv(int32(uni.id), 1, false, &value[0])
 	default:
-		fmt.Println(uni.value.(*mgl32.Vec2))
 		panic("Unsupported uniform type, these should be pointers")
 	}
 }

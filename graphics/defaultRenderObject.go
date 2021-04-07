@@ -2,6 +2,8 @@ package graphics
 
 import (
 	"Gopengl2/graphics/opengl"
+
+	"github.com/go-gl/mathgl/mgl32"
 )
 
 type DefaultRenderObject struct {
@@ -58,6 +60,26 @@ func (ro *DefaultRenderObject) ModifySquare(index, x, y, width, texX, texY, texW
 	ro.ModifyRect(index, x, y, width, width, texX, texY, texWidth, texWidth)
 }
 
-func (ro *DefaultRenderObject) SetTranslation(x, y float32) {
+func (ro *DefaultRenderObject) SetTranslation(x, y *float32) {
 	ro.vao.SetTranslation(x, y)
+}
+
+func (ro *DefaultRenderObject) SetRenderBounds(x, y, width, height float32) {
+	ro.vao.SetRenderBounds(mgl32.Vec4{x, y, width, height})
+}
+
+func (ro *DefaultRenderObject) Render() {
+	if ro.CanRender() {
+		ro.PrepRender()
+		ro.vao.Render()
+	}
+}
+
+func (ro *DefaultRenderObject) CanRender() bool {
+	return ro.ShouldRender && ro.vao.ShouldRender()
+}
+
+func (ro *DefaultRenderObject) UpdatePointers() {
+	ro.vao.UpdatePointers()
+	Update()
 }

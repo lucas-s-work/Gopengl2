@@ -14,6 +14,7 @@ without additional work.
 var (
 	window        *opengl.Window
 	renderObjects []RenderObject
+	updated       = true
 )
 
 func Init(w *opengl.Window) {
@@ -27,26 +28,31 @@ func DeleteRenderObjects() {
 	}
 }
 
+func Update() {
+	updated = true
+}
+
 // Rendering functions
 
 func PrepRender() {
-	//Process job queue
-	performJobs()
-
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
 }
 
-func FinishRender() {
-	window.SwapBuffers()
-	window.PollInput()
-}
-
 func Render() {
-	PrepRender()
-	for _, obj := range renderObjects {
-		obj.Render()
+	//Process job queue
+	performJobs()
+
+	// If any jobs caused an update then update
+	if updated {
+		updated = false
+
+		PrepRender()
+		for _, obj := range renderObjects {
+			obj.Render()
+		}
+		window.SwapBuffers()
 	}
 
-	FinishRender()
+	window.PollInput()
 }

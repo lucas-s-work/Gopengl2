@@ -5,8 +5,9 @@ in vec2 verttexcoord;
 
 //Translation, window dimension scaling, rotation
 uniform vec2 trans;
-uniform vec2 dim;
-uniform vec4 rot;
+uniform mat2 dim;
+uniform mat2 rot;
+uniform vec2 rotcenter;
 
 // Camera and zoom
 uniform float zoom;
@@ -23,39 +24,21 @@ void main(){
     // pos-=rotcenter;
     
     // mat2 rotmat=mat2(
-    //     rotgroup.z,rotgroup.w,
-    //     -rotgroup.w,rotgroup.z
+        //     rotgroup.z,rotgroup.w,
+        //     -rotgroup.w,rotgroup.z
     // );
     // pos=rotmat*pos;
     
     // pos+=rotcenter;
     
     // Apply uniform rotation
-    vec2 rotcenter=vec2(rot.x,rot.y);
     pos=pos-rotcenter;
-    
-    mat2 rotmat=mat2(
-        rot.z,rot.w,
-        -rot.w,rot.z
-    );
-    
-    pos=rotmat*pos;
-    
+    pos=rot*pos;
     pos=pos+rotcenter;
     
     // Apply screen scaling from pixel coordinates
-    pos.x=zoom*(pos.x/(.5*dim.x))-1;
-    pos.y=1-zoom*(pos.y/(.5*dim.y));
-
-    // Apply translation from pixel coordinates
-    vec2 scaled_trans = trans;
-    scaled_trans.x = scaled_trans.x / (.5 * dim.x);
-    scaled_trans.y = scaled_trans.y / (.5 * dim.y);
-
-    // Aplly translation from cam
-    vec2 scaled_cam = cam;
-    scaled_cam.x = scaled_trans.x / (.5 * dim.x);
-    scaled_cam.y = scaled_trans.y / (.5 * dim.y);
+    vec2 I=vec2(1,1);
+    pos=zoom*(dim*(pos+trans-cam))-I;
     
     gl_Position=vec4(pos,0.,1.);
 }

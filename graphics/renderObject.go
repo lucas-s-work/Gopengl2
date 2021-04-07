@@ -11,6 +11,7 @@ type RenderObject interface {
 	PrepRender()
 	Render()
 	Delete()
+	Created() bool
 	GetVAO() opengl.VAO
 }
 
@@ -71,6 +72,7 @@ func (ro *BaseRenderObject) UpdateBuffers() {
 	ro.vao.BindVao()
 	ro.vao.UpdateBuffers()
 	ro.updated = false
+	Update()
 }
 
 func (ro *BaseRenderObject) PrepRender() {
@@ -95,4 +97,12 @@ func (ro *BaseRenderObject) Delete() {
 
 func (ro *BaseRenderObject) GetVAO() opengl.VAO {
 	return ro.vao
+}
+
+func (ro *BaseRenderObject) Created() bool {
+	if ro == nil {
+		return false
+	}
+
+	return ro.vao != nil
 }
