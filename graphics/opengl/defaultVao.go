@@ -1,16 +1,19 @@
 package opengl
 
 import (
+	"sync"
+
 	"github.com/go-gl/mathgl/mgl32"
 )
 
 type DefaultVAO struct {
 	*BaseVAO
-	cam, position     *mgl32.Vec2
-	bounds            mgl32.Vec4
-	checkBounds       bool
-	position_pointers []*float32
-	pointers_updated  bool
+	updateMutex                     sync.Mutex
+	cam, position                   *mgl32.Vec2
+	bounds                          mgl32.Vec4
+	checkBounds                     bool
+	position_pointers, cam_pointers []*float32
+	pointers_updated                bool
 }
 
 func CreateDefaultVao(window *Window, textureSource string, elements int) *DefaultVAO {
@@ -32,8 +35,8 @@ func CreateDefaultVao(window *Window, textureSource string, elements int) *Defau
 	vao.AddBuffer("vert", &vBuff)
 	vao.AddBuffer("verttexcoord", &tBuff)
 
-	var x, y float32
-	defaultVAO := DefaultVAO{vao, &mgl32.Vec2{}, &mgl32.Vec2{}, mgl32.Vec4{}, false, []*float32{&x, &y}, false}
+	var x, y, cx, cy float32
+	defaultVAO := DefaultVAO{vao, sync.Mutex{}, &mgl32.Vec2{}, &mgl32.Vec2{}, mgl32.Vec4{}, false, []*float32{&x, &y}, []*float32{&cx, &cy}, false}
 
 	defaultVAO.AttachDefaultShader()
 	defaultVAO.Init()
@@ -48,9 +51,19 @@ For actual stuff that requires thread safe operators (eg not just setting rotati
 
 // Called from non opengl thread
 func (vao *DefaultVAO) SetTranslation(x, y *float32) {
+	vao.updateMutex.Lock()
 	vao.position_pointers[0] = x
 	vao.position_pointers[1] = y
 	vao.UpdateUniforms()
+	vao.updateMutex.Unlock()
+}
+
+func (vao *DefaultVAO) SetCam(x, y *float32) {
+	vao.updateMutex.Lock()
+	vao.cam_pointers[0] = x
+	vao.cam_pointers[1] = y
+	vao.UpdateUniforms()
+	vao.updateMutex.Unlock()
 }
 
 func (vao *DefaultVAO) UpdatePointers() {
@@ -59,18 +72,25 @@ func (vao *DefaultVAO) UpdatePointers() {
 
 // Called in the opengl thread
 func (vao *DefaultVAO) updatePointers() {
+	vao.updateMutex.Lock()
 	vao.position[0] = *vao.position_pointers[0]
 	vao.position[1] = *vao.position_pointers[1]
+	vao.cam[0] = *vao.cam_pointers[0]
+	vao.cam[1] = *vao.cam_pointers[1]
+	vao.updateMutex.Unlock()
 	vao.UpdateUniforms()
 	vao.pointers_updated = false
 }
 
 // Rendering logic
 func (vao *DefaultVAO) PrepRender() {
+	// Prep for render, bind the VAO and shader
+	vao.BaseVAO.PrepRender()
+
+	// Prep the pointers if updated
 	if vao.pointers_updated {
 		vao.updatePointers()
 	}
-	vao.BaseVAO.PrepRender()
 }
 
 func (vao *DefaultVAO) AttachDefaultShader() {
@@ -94,7 +114,7 @@ func (vao *DefaultVAO) AttachDefaultShader() {
 	var zoom float32 = 1
 	vao.AddUniform("trans", vao.position)
 	vao.AddUniform("dim", &mgl32.Mat2{2. / float32(vao.window.Width), 0., 0., 2. / float32(vao.window.Height)})
-	vao.AddUniform("cam", &mgl32.Vec2{})
+	vao.AddUniform("cam", vao.cam)
 	vao.AddUniform("zoom", &zoom)
 }
 
@@ -114,7 +134,7 @@ func (vao *DefaultVAO) ShouldRender() bool {
 	windowWidth := vao.window.Width
 	windowHeight := vao.window.Height
 
-	bPos := mgl32.Vec2{vao.bounds.X(), vao.bounds.Y()}.Add(*vao.position)
+	bPos := mgl32.Vec2{vao.bounds.X(), vao.bounds.Y()}.Add(*vao.position).Sub(*vao.cam)
 	bPosBoundary := mgl32.Vec2{vao.bounds.Z(), vao.bounds.W()}.Add(bPos)
 
 	if bPos.X() > float32(windowWidth) && bPosBoundary.X() > float32(windowWidth) {

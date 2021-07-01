@@ -1,7 +1,7 @@
 package graphics
 
 import (
-	"Gopengl2/graphics/opengl"
+	"github.com/lucass-work/Gopengl2/graphics/opengl"
 )
 
 type RenderObject interface {
@@ -72,7 +72,6 @@ func (ro *BaseRenderObject) UpdateBuffers() {
 	ro.vao.BindVao()
 	ro.vao.UpdateBuffers()
 	ro.updated = false
-	Update()
 }
 
 func (ro *BaseRenderObject) PrepRender() {

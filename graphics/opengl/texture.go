@@ -1,12 +1,13 @@
 package opengl
 
 import (
-	"Gopengl2/util"
 	"fmt"
 	"image"
 	"image/draw"
 	_ "image/png" //needed to load png file
 	"os"
+
+	"github.com/lucass-work/Gopengl2/util"
 
 	"github.com/go-gl/gl/v4.1-core/gl"
 )
@@ -42,7 +43,6 @@ type Texture struct {
 	height      int
 	file        string
 	textureUnit uint32
-	bound       bool
 }
 
 /*
@@ -101,7 +101,6 @@ func LoadTexture(file string) *Texture {
 		bounds.Max.Y,
 		file,
 		currentTextureUnitId,
-		false,
 	}
 
 	gl.BindTexture(gl.TEXTURE_2D, 0)
@@ -127,11 +126,6 @@ Texture usage methods
 */
 
 func (t *Texture) Use() {
-	if t.bound {
-		return
-	}
-
-	t.bound = true
 	gl.ActiveTexture(t.textureUnit)
 	gl.BindTexture(gl.TEXTURE_2D, t.id)
 }

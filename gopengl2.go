@@ -1,9 +1,10 @@
 package main
 
 import (
-	"Gopengl2/graphics"
-	"Gopengl2/graphics/opengl"
 	"runtime"
+
+	"github.com/lucass-work/Gopengl2/graphics"
+	"github.com/lucass-work/Gopengl2/graphics/opengl"
 )
 
 func init() {

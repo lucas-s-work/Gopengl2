@@ -41,14 +41,10 @@ type Buffer struct {
 
 // VAO creation and destruction
 func CreateVAO(window *Window, textureSource string) *BaseVAO {
-	var vaoID uint32
-
-	gl.GenVertexArrays(1, &vaoID)
-
 	texture := LoadTexture(textureSource)
 
 	vao := BaseVAO{
-		id:       vaoID,
+		id:       GetVAOId(),
 		window:   window,
 		texture:  texture,
 		buffers:  make(map[string]*Buffer),
@@ -179,7 +175,6 @@ func (vao *BaseVAO) VertNum() int32 {
 }
 
 func (vao *BaseVAO) Render() {
-	vao.PrepRender()
 	gl.DrawArrays(gl.TRIANGLES, 0, vao.VertNum())
 }
 

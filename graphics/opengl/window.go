@@ -1,6 +1,8 @@
 package opengl
 
 import (
+	"sync"
+
 	"github.com/go-gl/glfw/v3.2/glfw"
 )
 
@@ -10,6 +12,7 @@ type Window struct {
 	Name          string
 
 	// Mouse and keyboard
+	keyMutex               sync.Mutex
 	KeyMap                 map[string]bool
 	MouseX, MouseY         int
 	Mouse1, Mouse2, Mouse3 bool
@@ -36,6 +39,7 @@ func CreateWindow(width, height int, name string) *Window {
 	window.MakeContextCurrent()
 
 	w := Window{
+		keyMutex: sync.Mutex{},
 		GlWindow: window,
 		Width:    float64(width),
 		Height:   float64(height),
@@ -60,6 +64,8 @@ func (w *Window) ShouldClose() bool {
 
 // Input handling
 func (w *Window) PollInput() {
+	w.keyMutex.Lock()
+	defer w.keyMutex.Unlock()
 	glfw.PollEvents()
 	window := w.GlWindow
 
@@ -80,10 +86,14 @@ func (w *Window) PollInput() {
 }
 
 func (w *Window) Key(key string) bool {
+	w.keyMutex.Lock()
+	defer w.keyMutex.Unlock()
 	return w.KeyMap[key]
 }
 
 func (w *Window) KeyCombo(keys ...string) bool {
+	w.keyMutex.Lock()
+	defer w.keyMutex.Unlock()
 	for _, key := range keys {
 		if !w.Key(key) {
 			return false

@@ -1,7 +1,7 @@
 package graphics
 
 import (
-	"Gopengl2/graphics/opengl"
+	"github.com/lucass-work/Gopengl2/graphics/opengl"
 
 	"github.com/go-gl/mathgl/mgl32"
 )
@@ -64,13 +64,19 @@ func (ro *DefaultRenderObject) SetTranslation(x, y *float32) {
 	ro.vao.SetTranslation(x, y)
 }
 
+func (ro *DefaultRenderObject) SetCam(x, y *float32) {
+	ro.vao.SetCam(x, y)
+}
+
 func (ro *DefaultRenderObject) SetRenderBounds(x, y, width, height float32) {
 	ro.vao.SetRenderBounds(mgl32.Vec4{x, y, width, height})
 }
 
 func (ro *DefaultRenderObject) Render() {
+	// We should still prepare to render, this updates any variables etc
+	ro.PrepRender()
 	if ro.CanRender() {
-		ro.PrepRender()
+		ro.vao.PrepRender()
 		ro.vao.Render()
 	}
 }
@@ -81,5 +87,4 @@ func (ro *DefaultRenderObject) CanRender() bool {
 
 func (ro *DefaultRenderObject) UpdatePointers() {
 	ro.vao.UpdatePointers()
-	Update()
 }

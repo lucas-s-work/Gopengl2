@@ -1,7 +1,7 @@
 package text
 
 import (
-	"Gopengl2/graphics"
+	"github.com/lucass-work/Gopengl2/graphics"
 )
 
 type Font struct {

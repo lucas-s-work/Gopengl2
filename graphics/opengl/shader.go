@@ -1,13 +1,13 @@
 package opengl
 
 import (
-	"Gopengl2/util"
 	"fmt"
 	"io/ioutil"
 	"strings"
 
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
+	"github.com/lucass-work/Gopengl2/util"
 )
 
 // Shader types
@@ -259,6 +259,9 @@ func (p *Program) UpdateUniform(name string) {
 	u.Update()
 }
 
+/*
+In general this should be called and should be called by the vao after PrepRender
+*/
 func (p *Program) UpdateUniforms() {
 	p.Use()
 	for _, uni := range p.uniforms {
