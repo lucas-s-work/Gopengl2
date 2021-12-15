@@ -18,6 +18,12 @@ type Window struct {
 	Mouse1, Mouse2, Mouse3 bool
 }
 
+type InputData struct {
+	Mx, My     int
+	M1, M2, M3 bool
+	KeyMap     map[string]bool
+}
+
 // Window Creation and destruction
 
 func CreateWindow(width, height int, name string) *Window {
@@ -60,6 +66,14 @@ func (w *Window) SwapBuffers() {
 
 func (w *Window) ShouldClose() bool {
 	return w.GlWindow.ShouldClose()
+}
+
+func (w *Window) GetInputData() InputData {
+	return InputData{
+		w.MouseX, w.MouseY,
+		w.Mouse1, w.Mouse2, w.Mouse3,
+		w.KeyMap,
+	}
 }
 
 // Input handling

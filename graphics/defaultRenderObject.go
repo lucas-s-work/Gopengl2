@@ -1,9 +1,8 @@
 package graphics
 
 import (
-	"github.com/lucass-work/Gopengl2/graphics/opengl"
-
 	"github.com/go-gl/mathgl/mgl32"
+	"github.com/lucas-s-work/gopengl2/graphics/opengl"
 )
 
 type DefaultRenderObject struct {
@@ -19,6 +18,8 @@ func CreateDefaultRenderObject(texture string, elements int) *DefaultRenderObjec
 		vao.GetBuffer("vert"),
 		vao.GetBuffer("verttexcoord"),
 		true,
+		false,
+		make(chan WaitSignal),
 		false,
 		false,
 		false,
@@ -73,6 +74,9 @@ func (ro *DefaultRenderObject) SetRenderBounds(x, y, width, height float32) {
 }
 
 func (ro *DefaultRenderObject) Render() {
+	if ro.shouldWait {
+		<-ro.waitChan
+	}
 	// We should still prepare to render, this updates any variables etc
 	ro.PrepRender()
 	if ro.CanRender() {

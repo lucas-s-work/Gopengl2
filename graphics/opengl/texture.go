@@ -7,9 +7,8 @@ import (
 	_ "image/png" //needed to load png file
 	"os"
 
-	"github.com/lucass-work/Gopengl2/util"
-
 	"github.com/go-gl/gl/v4.1-core/gl"
+	"github.com/lucas-s-work/gopengl2/util"
 )
 
 var (

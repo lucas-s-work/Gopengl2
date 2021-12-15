@@ -1,8 +1,6 @@
 package opengl
 
-import (
-	"github.com/go-gl/gl/v4.1-core/gl"
-)
+import "github.com/go-gl/gl/v4.1-core/gl"
 
 type VAO interface {
 	Init()

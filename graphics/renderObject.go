@@ -1,7 +1,9 @@
 package graphics
 
 import (
-	"github.com/lucass-work/Gopengl2/graphics/opengl"
+	"fmt"
+
+	"github.com/lucas-s-work/gopengl2/graphics/opengl"
 )
 
 type RenderObject interface {
@@ -9,6 +11,7 @@ type RenderObject interface {
 	SetAutoUpdate(bool)
 	UpdateBuffers()
 	PrepRender()
+	SetWait(bool) chan WaitSignal
 	Render()
 	Delete()
 	Created() bool
@@ -20,12 +23,16 @@ Currently uses DefaultVAO but this can be changed in the parent
 object, this does not implement any of the attribute/uniform setting
 */
 
+type WaitSignal struct{}
+
 type BaseRenderObject struct {
 	vao                        *opengl.DefaultVAO
 	freeVert                   int
 	vBuff                      *opengl.Buffer
 	tBuff                      *opengl.Buffer
 	ShouldRender               bool
+	shouldWait                 bool
+	waitChan                   chan WaitSignal
 	updated, autoUpdate, async bool
 }
 
@@ -38,6 +45,8 @@ func CreateBaseRenderObject(texture string, elements int) *BaseRenderObject {
 		vao.GetBuffer("vert"),
 		vao.GetBuffer("verttexcoord"),
 		true,
+		false,
+		make(chan WaitSignal),
 		false,
 		false,
 		false,
@@ -83,7 +92,22 @@ func (ro *BaseRenderObject) PrepRender() {
 	ro.vao.PrepRender()
 }
 
+func (ro *BaseRenderObject) SetWait(shouldWait bool) chan WaitSignal {
+	ro.shouldWait = shouldWait
+
+	if shouldWait {
+		return ro.waitChan
+	} else {
+		return nil
+	}
+}
+
 func (ro *BaseRenderObject) Render() {
+	if ro.shouldWait {
+		fmt.Println("waiting")
+		<-ro.waitChan
+	}
+
 	if ro.ShouldRender {
 		ro.PrepRender()
 		ro.vao.Render()

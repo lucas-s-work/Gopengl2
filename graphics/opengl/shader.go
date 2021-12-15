@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
-	"github.com/lucass-work/Gopengl2/util"
+	"github.com/lucas-s-work/gopengl2/util"
 )
 
 // Shader types
@@ -192,6 +192,7 @@ func (uni *uniform) Update() {
 
 func (uni *uniform) Attach() {
 	// Updating uniforms is expensive, avoid if possible
+	// Or if an invalid uniform, i.e uint32(-1)
 	if !uni.updated || uni.id == 4294967295 {
 		return
 	}
