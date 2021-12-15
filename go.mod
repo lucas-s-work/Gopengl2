@@ -1,4 +1,4 @@
-module github.com/lucass-work/Gopengl2
+module github.com/lucas-s-work/gopengl2
 
 go 1.16
 
