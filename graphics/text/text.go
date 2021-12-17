@@ -15,7 +15,7 @@ type fontCoord struct {
 }
 
 type Text struct {
-	font              Font
+	font              *Font
 	R                 *graphics.DefaultRenderObject
 	currentText       string
 	currentTextIndexs []int
@@ -24,10 +24,10 @@ type Text struct {
 var (
 	defaultFontLocation = "./resources/sprites/font.png"
 	defaultLetterString = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_"
-	defaultFont         Font
+	defaultFont         *Font
 )
 
-func LoadFont(location, letters string) Font {
+func LoadFont(location, letters string) *Font {
 	lettersPerRow := 15
 	letterMap := make(map[rune]fontCoord)
 
@@ -44,7 +44,7 @@ func LoadFont(location, letters string) Font {
 		letterMap[c] = fontCoord{i * width, j * height}
 	}
 
-	return Font{location, letters, letterMap, 16, 16}
+	return &Font{location, letters, letterMap, 16, 16}
 }
 
 func LoadDefaultFont() {
@@ -52,16 +52,16 @@ func LoadDefaultFont() {
 }
 
 // Create and initialize the text RO
-func CreateText(text string, x, y int, font Font) Text {
-	if &font == nil {
+func CreateText(text string, x, y int, font *Font) Text {
+	if font == nil {
 		font = defaultFont
 	}
 
-	if &font == nil {
+	if font == nil {
 		panic("font set to nil and default font not loaded.")
 	}
 
-	ro := graphics.CreateDefaultRenderObject(defaultFontLocation, 1000)
+	ro := graphics.CreateDefaultRenderObject(defaultFontLocation, 1000*2)
 	indexs := make([]int, 1000)
 	// Initialize the positions used for the render object
 	for i := 0; i < 1000; i++ {
